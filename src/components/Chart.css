@@ -1,0 +1,149 @@
+.chart-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-title {
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  height: 100%;
+  width: 100%;
+}
+
+.bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  max-width: 60px;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 5px;
+}
+
+.bar:hover {
+  opacity: 0.8;
+}
+
+.bar-value {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  position: absolute;
+  top: -25px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.bar-label {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+  word-break: break-word;
+}
+
+.line-chart {
+  position: relative;
+  padding: 20px;
+}
+
+.line-chart svg {
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+}
+
+.line-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.line-label {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
+.pie-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.pie-legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .chart-bars {
+    gap: 8px;
+  }
+  
+  .bar {
+    max-width: 40px;
+  }
+  
+  .bar-value {
+    font-size: 0.7rem;
+  }
+  
+  .bar-label {
+    font-size: 0.7rem;
+  }
+  
+  .pie-chart {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .pie-chart svg {
+    width: 150px;
+    height: 150px;
+  }
+}

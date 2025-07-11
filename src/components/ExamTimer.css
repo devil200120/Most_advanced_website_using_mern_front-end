@@ -1,0 +1,152 @@
+.exam-timer {
+  position: sticky;
+  top: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e1e1e1;
+  transition: all 0.3s ease;
+}
+
+.exam-timer.timer-warning {
+  border-color: #ffc107;
+  background: #fff8e1;
+}
+
+.exam-timer.timer-expired {
+  border-color: #dc3545;
+  background: #ffebee;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.timer-icon {
+  width: 50px;
+  height: 50px;
+  background: #667eea;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.timer-warning .timer-icon {
+  background: #ffc107;
+  animation: pulse 1s infinite;
+}
+
+.timer-expired .timer-icon {
+  background: #dc3545;
+  animation: shake 0.5s infinite;
+}
+
+.timer-text {
+  flex: 1;
+}
+
+.time-remaining {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-warning .time-remaining {
+  color: #856404;
+}
+
+.timer-expired .time-remaining {
+  color: #721c24;
+}
+
+.timer-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+.timer-progress {
+  height: 8px;
+  background: #e1e1e1;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #667eea;
+  transition: width 1s ease;
+}
+
+.timer-warning .progress-bar {
+  background: #ffc107;
+}
+
+.timer-expired .progress-bar {
+  background: #dc3545;
+}
+
+.timer-warning-message,
+.timer-expired-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.timer-warning-message {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.timer-expired-message {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@media (max-width: 768px) {
+  .exam-timer {
+    padding: 15px;
+  }
+  
+  .timer-display {
+    gap: 10px;
+  }
+  
+  .timer-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .time-remaining {
+    font-size: 1.5rem;
+  }
+}
