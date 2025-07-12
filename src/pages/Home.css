@@ -1,4 +1,4 @@
-/* Mobile-First Responsive Homepage CSS - 2025 Optimized */
+/* Mobile-First Responsive Homepage CSS - Enhanced 2025 */
 
 /* Essential Mobile Meta Tag - Add this to your HTML head */
 /* <meta name="viewport" content="width=device-width, initial-scale=1.0"> */
@@ -99,7 +99,7 @@ body {
   padding: var(--spacing-2xl) 0;
   position: relative;
   overflow: hidden;
-  min-height: 80vh;
+  min-height: 90vh;
   display: flex;
   align-items: center;
 }
@@ -127,7 +127,7 @@ body {
 
 .hero-text h1 {
   /* Responsive font sizing using clamp() */
-  font-size: clamp(var(--font-size-3xl), 8vw, var(--font-size-4xl));
+  font-size: clamp(1.75rem, 7vw, 2.5rem);
   margin-bottom: var(--spacing-lg);
   line-height: var(--line-height-tight);
   font-weight: 800;
@@ -262,7 +262,7 @@ body {
 
 .exam-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
 }
 
@@ -332,7 +332,7 @@ body {
 
 .stat-content h3 {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-dark);
   line-height: 1;
@@ -790,5 +790,66 @@ select {
   .step-card,
   .testimonial-card {
     padding: var(--spacing-lg);
+  }
+}
+
+/* Additional mobile specific improvements */
+@media (max-width: 480px) {
+  .hero-text h1 {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+  
+  .hero-text p {
+    font-size: var(--font-size-base);
+  }
+  
+  .exam-stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .stat {
+    padding: var(--spacing-sm);
+  }
+  
+  .stat .number {
+    font-size: var(--font-size-lg);
+  }
+  
+  .hero-card {
+    padding: var(--spacing-md);
+  }
+  
+  .section-header h2 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .section-header p {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-section {
+    min-height: 100vh;
+    padding: var(--spacing-lg) 0;
+  }
+  
+  .hero-content {
+    flex-direction: row;
+    gap: var(--spacing-lg);
+  }
+  
+  .hero-text h1 {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* Safe area adjustments for notched devices */
+@supports (padding: max(0px)) {
+  .hero-section {
+    padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-md), env(safe-area-inset-right));
   }
 }
