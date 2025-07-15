@@ -208,15 +208,44 @@ const Navbar = () => {
     </svg>
   );
 
+  // Helper function to get avatar URL
+  const getAvatarUrl = (avatar) => {
+    if (!avatar) return null;
+    
+    // If it's a full URL, return as is
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+      return avatar;
+    }
+    
+    // If it's a relative path, construct the full URL
+    if (avatar.startsWith('/uploads/') || avatar.startsWith('uploads/')) {
+      const cleanPath = avatar.startsWith('/') ? avatar : `/${avatar}`;
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${cleanPath}`;
+    }
+    
+    return avatar;
+  };
+
   return (
     <header className={`nav-header ${scrolled ? 'scrolled' : ''}`}>
       <nav className="nav-container">
-        {/* Brand */}
+        {/* Enhanced Brand with Logo and Text */}
         <Link to="/" className="nav-brand">
           <div className="brand-logo">
-            <FeatherIcon name="book-open" size={24} />
+            <img 
+              src="/images/Exam_logo.jpg" 
+              alt="A3 E SCHOOL - Olympiad Exams & Online Tuition" 
+              className="logo-image"
+              onError={(e) => {
+                console.error('Logo failed to load');
+                e.target.style.display = 'none';
+              }}
+            />
           </div>
-          <span className="brand-name">ExamPro</span>
+          <div className="brand-text">
+            <span className="brand-name">A3 E SCHOOL</span>
+            <span className="brand-subtitle">Olympiad Exams & Online Tuition</span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -254,7 +283,7 @@ const Navbar = () => {
                   >
                     <div className="profile-avatar">
                       {user.avatar ? (
-                        <img src={user.avatar} alt={user.firstName || user.name} />
+                        <img src={getAvatarUrl(user.avatar)} alt={user.firstName || user.name} />
                       ) : (
                         <span>{(user.firstName?.[0] || user.name?.[0] || 'U').toUpperCase()}</span>
                       )}
@@ -278,7 +307,7 @@ const Navbar = () => {
                         <div className="profile-header">
                           <div className="profile-avatar-large">
                             {user.avatar ? (
-                              <img src={user.avatar} alt={user.firstName || user.name} />
+                              <img src={getAvatarUrl(user.avatar)} alt={user.firstName || user.name} />
                             ) : (
                               <span>{(user.firstName?.[0] || user.name?.[0] || 'U').toUpperCase()}</span>
                             )}
