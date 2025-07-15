@@ -2,27 +2,66 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './ExamCard.css';
+import api from '../services/api'; // ADD THIS IMPORT
 
-const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => {
+
+const ExamCard = ({ exam, showEditButton = false, showStartButton = false , onDelete}) => {
   const { user } = useAuth();
   
   // Get user role from auth context
   const userRole = user?.role;
+  const handleDeleteExam = async () => {
+    if (!window.confirm(`Are you sure you want to delete the exam "${exam.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await api.delete(`/exams/${exam._id}`);
+      
+      if (response.data.success) {
+        alert('Exam deleted successfully!');
+        if (onDelete) {
+          onDelete(exam._id); // Notify parent component to refresh the list
+        } else {
+          // Fallback: reload the page
+          window.location.reload();
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting exam:', error);
+      alert('Error deleting exam: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!date) return 'Not specified';
+    
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return 'Invalid Date';
+      
+      return dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   const getExamStatus = () => {
     const now = new Date();
+    // Handle both field formats for compatibility
     const startTime = new Date(exam.schedule?.startDate || exam.startTime);
     const endTime = new Date(exam.schedule?.endDate || exam.endTime);
+
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return 'unknown';
+    }
 
     if (now < startTime) return 'upcoming';
     if (now >= startTime && now <= endTime) return 'ongoing';
@@ -40,8 +79,12 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
 
   const getTimeRemaining = () => {
     const now = new Date();
-    const startTime = new Date(exam.startTime);
-    const endTime = new Date(exam.endTime);
+    const startTime = new Date(exam.schedule?.startDate || exam.startTime);
+    const endTime = new Date(exam.schedule?.endDate || exam.endTime);
+    
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return 'Time not available';
+    }
     
     if (now < startTime) {
       const diff = startTime - now;
@@ -72,8 +115,8 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
     <div className="exam-card">
       <div className="exam-header">
         <div className="exam-title">
-          <h3>{exam.title}</h3>
-          <span className="exam-subject">{exam.subject}</span>
+          <h3>{exam.title || 'Untitled Exam'}</h3>
+          <span className="exam-subject">{exam.subject || 'No Subject'}</span>
         </div>
         <div className="exam-status-container">
           <span 
@@ -92,7 +135,9 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
             <i className="fas fa-calendar-alt"></i>
             <div>
               <span className="detail-label">Start Time</span>
-              <span className="detail-value">{formatDate(exam.startTime)}</span>
+              <span className="detail-value">
+                {formatDate(exam.schedule?.startDate || exam.startTime)}
+              </span>
             </div>
           </div>
           
@@ -100,7 +145,7 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
             <i className="fas fa-clock"></i>
             <div>
               <span className="detail-label">Duration</span>
-              <span className="detail-value">{exam.duration} minutes</span>
+              <span className="detail-value">{exam.duration || 0} minutes</span>
             </div>
           </div>
           
@@ -108,7 +153,7 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
             <i className="fas fa-question-circle"></i>
             <div>
               <span className="detail-label">Questions</span>
-              <span className="detail-value">{exam.totalQuestions}</span>
+              <span className="detail-value">{exam.totalQuestions || exam.questions?.length || 0}</span>
             </div>
           </div>
           
@@ -116,7 +161,7 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
             <i className="fas fa-trophy"></i>
             <div>
               <span className="detail-label">Max Score</span>
-              <span className="detail-value">{exam.maxScore} points</span>
+              <span className="detail-value">{exam.totalMarks || exam.maxScore || 0} points</span>
             </div>
           </div>
         </div>
@@ -141,11 +186,21 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
             <Link to={`/exam/results/${exam._id}`} className="btn btn-success">
               <i className="fas fa-chart-bar"></i> Results
             </Link>
-            {status === 'upcoming' && (
-              <button className="btn btn-danger">
-                <i className="fas fa-trash"></i> Delete
+            {!exam.isPublished && (
+              <button className="btn btn-warning">
+                <i className="fas fa-eye-slash"></i> Unpublished
               </button>
             )}
+           
+{status === 'upcoming' && (
+  <button 
+    className="btn btn-danger"
+    onClick={handleDeleteExam}
+    title="Delete Exam"
+  >
+    <i className="fas fa-trash"></i> Delete
+  </button>
+)}
           </>
         )}
         
@@ -158,11 +213,24 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
               </button>
             )}
             
-            {status === 'ongoing' && (
-              <Link to={`/exam/take/${exam._id}`} className="btn btn-primary">
-                <i className="fas fa-play"></i> Take Exam
-              </Link>
-            )}
+           {status === 'ongoing' && (
+  <>
+    {exam.userAttempts?.hasAttempted && !exam.settings?.allowMultipleAttempts ? (
+      <button className="btn btn-disabled" disabled>
+        <i className="fas fa-ban"></i> Already Attempted
+      </button>
+    ) : exam.userAttempts?.attemptCount >= exam.settings?.maxAttempts ? (
+      <button className="btn btn-disabled" disabled>
+        <i className="fas fa-exclamation-triangle"></i> Max Attempts Reached
+      </button>
+    ) : (
+      <Link to={`/exam/take/${exam._id}`} className="btn btn-primary">
+        <i className="fas fa-play"></i> 
+        {exam.userAttempts?.hasAttempted ? `Attempt ${exam.userAttempts.nextAttemptNumber}` : 'Take Exam'}
+      </Link>
+    )}
+  </>
+)}
             
             {status === 'completed' && (
               <Link to={`/exam/result/${exam._id}`} className="btn btn-info">
@@ -180,22 +248,7 @@ const ExamCard = ({ exam, showEditButton = false, showStartButton = false }) => 
         {userRole === 'parent' && (
           <>
             <Link to={`/exam/progress/${exam._id}`} className="btn btn-info">
-              <i className="fas fa-chart-line"></i> Progress
-            </Link>
-            <Link to={`/exam/details/${exam._id}`} className="btn btn-secondary">
-              <i className="fas fa-info-circle"></i> Details
-            </Link>
-          </>
-        )}
-        
-        {/* Admin Actions */}
-        {userRole === 'admin' && (
-          <>
-            <Link to={`/admin/exam/${exam._id}`} className="btn btn-primary">
-              <i className="fas fa-cog"></i> Manage
-            </Link>
-            <Link to={`/admin/exam/analytics/${exam._id}`} className="btn btn-info">
-              <i className="fas fa-analytics"></i> Analytics
+              <i className="fas fa-chart-line"></i> View Progress
             </Link>
           </>
         )}
