@@ -169,7 +169,29 @@ export const endpoints = {
     delete: (key) => `/settings/${key}`,
     getByCategory: (category) => `/settings/category/${category}`,
     bulkUpdate: '/settings/bulk'
-  }
+  },
+  // Add these parent endpoints to the existing endpoints object around line 170:
+
+// Add this to the endpoints object:
+parent: {
+  dashboard: '/parent/dashboard',
+  addChild: '/parent/add-child',
+  getChildren: '/parent/children',
+  removeChild: (childId) => `/parent/child/${childId}/remove`,
+  getChildProgress: (childId) => `/parent/child/${childId}/progress`,
+  getChildExams: (childId) => `/parent/child/${childId}/exams`,
+  getChildResults: (childId) => `/parent/child/${childId}/results`,
+  linkStudent: '/parent/link-student',
+  unlinkStudent: (studentId) => `/parent/unlink-student/${studentId}`
+},
+
+// Dashboard endpoints
+dashboard: {
+  student: '/dashboard/student',
+  teacher: '/dashboard/teacher', 
+  parent: '/dashboard/parent',
+  admin: '/dashboard/admin'
+}
 };
 
 // Helper functions
