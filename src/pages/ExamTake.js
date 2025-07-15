@@ -18,6 +18,8 @@ const ExamTake = () => {
   const [submitting, setSubmitting] = useState(false);
   const [examStarted, setExamStarted] = useState(false);
   const [warning, setWarning] = useState('');
+  const [submissionId, setSubmissionId] = useState(null);
+
   const [tabSwitches, setTabSwitches] = useState(0);
   const [fullscreenExited, setFullscreenExited] = useState(0);
   const timerRef = useRef(null);
@@ -34,17 +36,48 @@ const ExamTake = () => {
   }, [examId]);
 
   const fetchExamData = async () => {
-    try {
-      const response = await api.get(`/exams/${examId}`);
-      setExam(response.data.exam);
-      setQuestions(response.data.questions);
-      setTimeRemaining(response.data.exam.duration * 60); // Convert to seconds
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching exam:', error);
-      navigate('/dashboard');
+  try {
+    console.log('Fetching exam with ID:', examId); // Add debugging
+    const response = await api.get(`/exams/${examId}`);
+    console.log('API Response:', response.data); // Add debugging
+    
+    if (response.data.success) {
+      setExam(response.data.data.exam);
+      setQuestions(response.data.data.questions || []);
+      setTimeRemaining(response.data.data.exam.duration * 60);
+    } else {
+      console.error('API returned error:', response.data.message);
+      alert(response.data.message || 'Failed to load exam');
+      navigate('/exams');
+      return;
     }
-  };
+    setLoading(false);
+  } catch (error) {
+    console.error('Error fetching exam:', error);
+    
+    // Better error handling
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+      
+      if (error.response.status === 403) {
+        alert('You do not have permission to access this exam or it is not available yet.');
+      } else if (error.response.status === 404) {
+        alert('Exam not found.');
+      } else {
+        alert(`Error: ${error.response.data.message || 'Failed to load exam'}`);
+      }
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      alert('Network error: Unable to connect to server.');
+    } else {
+      console.error('Request setup error:', error.message);
+      alert('Error setting up request.');
+    }
+    
+    navigate('/exams'); // Go to exam list instead of dashboard
+  }
+};
 
   const setupSecurityMeasures = () => {
     // Prevent right-click
@@ -100,19 +133,25 @@ const ExamTake = () => {
   };
 
   const startExam = async () => {
-    try {
-      // Request fullscreen
-      await document.documentElement.requestFullscreen();
-      
-      setExamStarted(true);
-      startTimer();
-      
-      // Log exam start
-      await api.post(`/exams/${examId}/start`);
-    } catch (error) {
-      console.error('Error starting exam:', error);
+  try {
+    // Request fullscreen
+    await document.documentElement.requestFullscreen();
+    
+    setExamStarted(true);
+    startTimer();
+    
+    // Start exam and get submission ID
+    const response = await api.post(`/exams/${examId}/start`);
+    if (response.data.success && response.data.data.submission) {
+      setSubmissionId(response.data.data.submission._id);
+    } else {
+      throw new Error('Failed to start exam properly');
     }
-  };
+  } catch (error) {
+    console.error('Error starting exam:', error);
+    alert('Error starting exam: ' + (error.response?.data?.message || error.message));
+  }
+};
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -171,34 +210,43 @@ const ExamTake = () => {
     await submitExam();
   };
 
-  const submitExam = async () => {
-    setSubmitting(true);
-    
-    try {
-      const submissionData = {
-        examId,
-        answers,
-        timeSpent: (exam.duration * 60) - timeRemaining,
-        securityFlags: {
-          tabSwitches,
-          fullscreenExited,
-          warningsReceived: tabSwitches + fullscreenExited
-        }
-      };
+  // Update the navigation in submitExam function around line 220
 
-      await api.post('/submissions', submissionData);
-      
-      // Exit fullscreen
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
+const submitExam = async () => {
+  setSubmitting(true);
+  
+  try {
+    const submissionData = {
+      examId,
+      answers,
+      timeSpent: (exam.duration * 60) - timeRemaining,
+      securityFlags: {
+        tabSwitches,
+        fullscreenExited,
+        warningsReceived: tabSwitches + fullscreenExited
       }
-      
-      navigate(`/exam/result/${examId}`);
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      setSubmitting(false);
+    };
+
+    const response = await api.post('/submissions', submissionData);
+    
+    // Exit fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
     }
-  };
+    
+    // Navigate to the correct result route
+    if (response.data.success && response.data.data.submissionId) {
+      navigate(`/exam-result/${response.data.data.submissionId}`);
+    } else {
+      // Fallback navigation
+      navigate('/exams');
+    }
+  } catch (error) {
+    console.error('Error submitting exam:', error);
+    alert('Error submitting exam: ' + (error.response?.data?.message || error.message));
+    setSubmitting(false);
+  }
+};
 
   const getAnswerStatus = (index) => {
     const question = questions[index];
@@ -316,19 +364,20 @@ const ExamTake = () => {
               </div>
             )}
             
+            // Update the multiple-choice options rendering around line 352
             <div className="question-options">
               {currentQ.type === 'multiple-choice' && (
                 <div className="mcq-options">
                   {currentQ.options.map((option, index) => (
-                    <label key={index} className="mcq-option">
+                    <label key={option._id || index} className="mcq-option">
                       <input
                         type="radio"
                         name={`question-${currentQ._id}`}
-                        value={option}
-                        checked={answers[currentQ._id] === option}
+                        value={option.text || option} // Handle both object and string options
+                        checked={answers[currentQ._id] === (option.text || option)}
                         onChange={(e) => handleAnswerChange(currentQ._id, e.target.value)}
                       />
-                      <span className="option-text">{option}</span>
+                      <span className="option-text">{option.text || option}</span>
                     </label>
                   ))}
                 </div>
