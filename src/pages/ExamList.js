@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useExam } from '../context/ExamContext';
 import Loading from '../components/Loading';
 import './ExamList.css';
+import api from '../services/api'; // Add this line after other imports
 
 const ExamList = () => {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const ExamList = () => {
     completed: 0
   });
 
+
   useEffect(() => {
     loadExams();
   }, []);
@@ -36,7 +38,44 @@ const ExamList = () => {
   const loadExams = async () => {
     await fetchExams();
   };
+  // Add this function after the handleDeleteExam function (after line 40):
 
+const handlePublishExam = async (examId, examTitle) => {
+  if (!window.confirm(`Are you sure you want to publish the exam "${examTitle}"? Students will be able to see it.`)) {
+    return;
+  }
+
+  try {
+    const response = await api.put(`/exams/${examId}/publish`);
+    
+    if (response.data.success) {
+      alert('Exam published successfully! Students can now see this exam.');
+      loadExams(); // Refresh the exam list
+    }
+  } catch (error) {
+    console.error('Error publishing exam:', error);
+    alert('Error publishing exam: ' + (error.response?.data?.message || error.message));
+  }
+};
+// Add this AFTER line 40 in c:\Users\KIIT0001\Desktop\exam_site\front-end\src\pages\ExamList.js
+
+const handleDeleteExam = async (examId, examTitle) => {
+  if (!window.confirm(`Are you sure you want to delete the exam "${examTitle}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const response = await api.delete(`/exams/${examId}`);
+    
+    if (response.data.success) {
+      alert('Exam deleted successfully!');
+      loadExams(); // Refresh the exam list
+    }
+  } catch (error) {
+    console.error('Error deleting exam:', error);
+    alert('Error deleting exam: ' + (error.response?.data?.message || error.message));
+  }
+};
   const calculateStats = () => {
     const now = new Date();
     const newStats = {
@@ -474,19 +513,41 @@ const ExamList = () => {
                     </>
                   )}
                   
-                  {user?.role === 'teacher' && (
-                    <div className="teacher-actions">
-                      <Link to={`/exam/${exam._id}/edit`} className="btn btn-outline">
-                        <i className="fas fa-edit"></i>
-                        Edit
-                      </Link>
-                      <Link to={`/exam/${exam._id}/submissions`} className="btn btn-primary">
-                        <i className="fas fa-users"></i>
-                        Submissions
-                      </Link>
-                    </div>
-                  )}
-                </div>
+
+
+
+{user?.role === 'teacher' && (
+  <div className="teacher-actions">
+    <Link to={`/exam/${exam._id}/edit`} className="btn btn-outline">
+      <i className="fas fa-edit"></i>
+      Edit
+    </Link>
+    <Link to={`/exam/${exam._id}/submissions`} className="btn btn-primary">
+      <i className="fas fa-users"></i>
+      Submissions
+    </Link>
+    {!exam.isPublished && (
+      <button 
+        onClick={() => handlePublishExam(exam._id, exam.title)}
+        className="btn btn-success"
+        title="Publish Exam"
+      >
+        <i className="fas fa-eye"></i>
+        Publish
+      </button>
+    )}
+    {getStatusColor(exam) === 'upcoming' && (
+      <button 
+        onClick={() => handleDeleteExam(exam._id, exam.title)}
+        className="btn btn-danger"
+        title="Delete Exam"
+      >
+        <i className="fas fa-trash"></i>
+        Delete
+      </button>
+    )}
+  </div>
+)}                </div>
               </div>
             ))}
           </div>
