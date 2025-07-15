@@ -1,0 +1,513 @@
+.admin-exams {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h1 {
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.header-content p {
+  color: #7f8c8d;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.filters-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.exams-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.exams-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.exams-table th {
+  background: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  color: #2c3e50;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.exams-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f3f4;
+  vertical-align: middle;
+  color: #2c3e50;
+}
+
+.exams-table tr:hover {
+  background: #f8f9fa;
+}
+
+.exam-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.exam-description {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.badge-primary {
+  background: #3498db;
+  color: white;
+}
+
+.badge-success {
+  background: #27ae60;
+  color: white;
+}
+
+.badge-warning {
+  background: #f39c12;
+  color: white;
+}
+
+.badge-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.badge-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+/* Original action buttons - works on desktop */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.page-info {
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.exams-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Button Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #7f8c8d;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: #3498db;
+  border: 2px solid #3498db;
+}
+
+.btn-outline-primary:hover {
+  background: #3498db;
+  color: white;
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: #95a5a6;
+  border: 2px solid #95a5a6;
+}
+
+.btn-outline-secondary:hover {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+}
+
+.btn-outline-danger:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design - MOBILE CHANGES */
+@media (max-width: 768px) {
+  .admin-exams {
+    padding: 1rem 0;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Make table container horizontally scrollable */
+  .exams-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Set minimum width to ensure all columns are visible */
+  .exams-table {
+    min-width: 900px; /* Wide enough for all 8 columns */
+  }
+
+  /* Make Actions column sticky so it's always visible when scrolling */
+  .exams-table th:last-child,
+  .exams-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: white;
+    z-index: 2;
+    border-left: 2px solid #e9ecef;
+    box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+    min-width: 180px; /* Wide enough for 3 action buttons */
+  }
+
+  .exams-table th:last-child {
+    background: #f8f9fa;
+    z-index: 3;
+  }
+
+  /* Stack action buttons vertically on mobile */
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+  }
+
+  .action-buttons .btn-sm {
+    width: 100%;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    justify-content: center;
+  }
+
+  /* Adjust exam info for mobile */
+  .exam-info {
+    min-width: 150px;
+  }
+
+  .exam-title {
+    font-size: 0.9rem;
+  }
+
+  .exam-description {
+    max-width: 140px;
+  }
+
+  .exams-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-exams {
+    padding: 0.5rem 0;
+  }
+
+  .page-header {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .filters-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Adjust table for very small screens */
+  .exams-table {
+    min-width: 800px; /* Still wide enough but smaller */
+    font-size: 0.85rem;
+  }
+
+  .exams-table th,
+  .exams-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .exams-table th:last-child,
+  .exams-table td:last-child {
+    min-width: 160px; /* Slightly smaller but still functional */
+    padding: 0.5rem 0.5rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .action-buttons .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .exam-title {
+    font-size: 0.85rem;
+  }
+
+  .exam-description {
+    max-width: 120px;
+    font-size: 0.75rem;
+  }
+
+  .exams-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .pagination {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .exams-table {
+    min-width: 700px;
+  }
+  
+  .exams-table th:last-child,
+  .exams-table td:last-child {
+    min-width: 140px;
+  }
+  
+  .action-buttons .btn-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.4rem;
+  }
+  
+  .exam-description {
+    max-width: 100px;
+  }
+}
+
+/* Loading animation for buttons */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.btn:disabled::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
