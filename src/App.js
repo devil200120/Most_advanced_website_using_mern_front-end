@@ -1,285 +1,534 @@
-// Replace the entire component with this fixed version:
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import EditExam from './pages/EditExam';
+import ExamSubmissions from './pages/ExamSubmissions';
+import ExamQuestions from './pages/ExamQuestions';
+import ExamResults from './pages/ExamResults';
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import Loading from '../components/Loading';
-import './ResultsList.css';
 
-const ResultsList = () => {
-  const { user } = useAuth();
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
-    subject: 'all',
-    sortBy: 'date',
-    sortOrder: 'desc'
-  });
+// Context Providers
+import { AuthProvider } from './context/AuthContext';
+import { ExamProvider } from './context/ExamContext';
+import { NotificationProvider } from './context/NotificationContext';
 
-  useEffect(() => {
-    fetchResults();
-  }, [filters]);
+// Components
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+import Breadcrumb from './components/Breadcrumb';
+import ThemeToggle from './components/ThemeToggle';
+import Loading from './components/Loading';
 
-  const fetchResults = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch user's submissions
-      const response = await api.get('/submissions', {
-        params: {
-          student: user._id,
-          isSubmitted: true
-        }
-      });
-      
-      console.log('API Response:', response.data);
-      
-      if (response.data.success) {
-        setResults(response.data.data?.submissions || []);
-      } else {
-        setError('Failed to fetch results');
-        setResults([]);
-      }
-    } catch (error) {
-      console.error('Error fetching results:', error);
-      setError('Failed to load exam results');
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+// Pages - Public
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Help from './pages/Help';
+import NotFound from './pages/NotFound';
+import Unauthorized from './pages/Unauthorized';
+import VerifyEmail from './pages/VerifyEmail';
+import StudentProgress from './pages/StudentProgress';
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+// Pages - Protected
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
+import Payment from './pages/Payment';
 
-  const calculatePercentage = (submission) => {
-    if (!submission.answers || submission.answers.length === 0) return 0;
-    
-    const totalQuestions = submission.answers.length;
-    const correctAnswers = submission.answers.filter(answer => answer.isCorrect).length;
-    
-    return Math.round((correctAnswers / totalQuestions) * 100);
-  };
+// Pages - Exam Related
+import CreateExam from './pages/CreateExam';
+import ExamList from './pages/ExamList';
+import ExamTake from './pages/ExamTake';
+import ExamResult from './pages/ExamResult';
+import ResultsList from './pages/ResultsList';
+import Schedule from './pages/Schedule';
+import Students from './pages/Students';
 
-  const getScoreText = (submission) => {
-    if (!submission.answers || submission.answers.length === 0) {
-      return "0 / 0 points";
-    }
-    
-    const totalQuestions = submission.answers.length;
-    const correctAnswers = submission.answers.filter(answer => answer.isCorrect).length;
-    
-    return `${correctAnswers} / ${totalQuestions} points`;
-  };
+// Role-based Dashboards
+import AdminDashboard from './components/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminExams from './pages/AdminExams';
+import TeacherDashboard from './components/TeacherDashboard';
+import StudentDashboard from './components/StudentDashboard';
+import ExamView from './pages/ExamView';
 
-  const getGradeColor = (percentage) => {
-    if (percentage >= 90) return 'grade-a';
-    if (percentage >= 80) return 'grade-b';
-    if (percentage >= 70) return 'grade-c';
-    if (percentage >= 60) return 'grade-d';
-    return 'grade-f';
-  };
 
-  const getGrade = (percentage) => {
-    if (percentage >= 90) return 'A+';
-    if (percentage >= 80) return 'A';
-    if (percentage >= 70) return 'B+';
-    if (percentage >= 60) return 'B';
-    if (percentage >= 50) return 'C';
-    if (percentage >= 40) return 'D';
-    return 'F';
-  };
+// Parent Components
+import ParentDashboard from './pages/ParentDashboard';
+import ChildProgress from './pages/ChildProgress';
+import ParentChildren from './pages/ParentChildren';
+import ParentReports from './pages/ParentReports';
 
-  const filteredResults = results.filter(result => {
-    if (filters.subject !== 'all' && result.exam?.subject !== filters.subject) {
-      return false;
-    }
-    return true;
-  }).sort((a, b) => {
-    if (filters.sortBy === 'date') {
-      const aDate = new Date(a.submittedAt);
-      const bDate = new Date(b.submittedAt);
-      return filters.sortOrder === 'desc' ? bDate - aDate : aDate - bDate;
-    } else {
-      const aScore = calculatePercentage(a);
-      const bScore = calculatePercentage(b);
-      return filters.sortOrder === 'desc' ? bScore - aScore : aScore - bScore;
-    }
-  });
+// Styles
+import './App.css';
 
-  const subjects = [...new Set(results.map(r => r.exam?.subject).filter(Boolean))];
-
-  if (loading) return <Loading message="Loading your results..." />;
-
-  if (error) {
-    return (
-      <div className="results-list-container">
-        <div className="error-state">
-          <div className="error-icon">⚠️</div>
-          <h2>Unable to Load Results</h2>
-          <p>{error}</p>
-          <button 
-            onClick={fetchResults}
-            className="btn btn-primary"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
   }
 
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-boundary" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          textAlign: 'center',
+          padding: '2rem'
+        }}>
+          <h2>Something went wrong.</h2>
+          <p>Please refresh the page or contact support if the problem persists.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Loading Fallback Component
+const LoadingFallback = () => (
+  <div className="loading-container" style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '50vh'
+  }}>
+    <Loading />
+  </div>
+);
+
+function App() {
   return (
-    <div className="results-list-container">
-      <div className="results-header">
-        <div className="header-content">
-          <h1>📊 My Results</h1>
-          <p>View your exam results and performance</p>
-        </div>
-        
-        <div className="results-filters">
-          <select 
-            value={filters.subject} 
-            onChange={(e) => setFilters({...filters, subject: e.target.value})}
-            className="filter-select"
-          >
-            <option value="all">All Subjects</option>
-            {subjects.map(subject => (
-              <option key={subject} value={subject}>{subject}</option>
-            ))}
-          </select>
-          
-          <select 
-            value={filters.sortBy} 
-            onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
-            className="filter-select"
-          >
-            <option value="date">Sort by Date</option>
-            <option value="score">Sort by Score</option>
-          </select>
-          
-          <select 
-            value={filters.sortOrder} 
-            onChange={(e) => setFilters({...filters, sortOrder: e.target.value})}
-            className="filter-select"
-          >
-            <option value="desc">Newest First</option>
-            <option value="asc">Oldest First</option>
-          </select>
-        </div>
-      </div>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ExamProvider>
+          <NotificationProvider>
+            <Router>
+              <div className="App">
+                <Navbar />
+                <Breadcrumb />
+                <ThemeToggle />
+                
+                <main className="main-content">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route path="/" element={<Home />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/verify-email" element={<VerifyEmail />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/help" element={<Help />} />
+                      <Route path="/unauthorized" element={<Unauthorized />} />
+                      
+                      {/* Protected Routes - Common */}
+                      <Route 
+                        path="/dashboard" 
+                        element={
+                          <ProtectedRoute>
+                            <Dashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/profile" 
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/settings" 
+                        element={
+                          <ProtectedRoute>
+                            <Settings />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/notifications" 
+                        element={
+                          <ProtectedRoute>
+                            <Notifications />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/payment" 
+                        element={
+                          <ProtectedRoute>
+                            <Payment />
+                          </ProtectedRoute>
+                        } 
+                      />
 
-      {filteredResults.length === 0 ? (
-        <div className="no-results">
-          <div className="no-results-icon">📚</div>
-          <h3>No Results Yet</h3>
-          <p>You haven't completed any exams yet. Start taking exams to see your results here!</p>
-          <Link to="/exams" className="btn btn-primary">
-            <span>🎯</span>
-            View Available Exams
-          </Link>
-        </div>
-      ) : (
-        <>
-          {/* Summary Stats */}
-          <div className="results-summary">
-            <div className="summary-card">
-              <div className="summary-icon">🎯</div>
-              <div className="summary-info">
-                <h3>{filteredResults.length}</h3>
-                <p>Total Exams</p>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">⭐</div>
-              <div className="summary-info">
-                <h3>
-                  {filteredResults.length > 0 
-                    ? Math.round(filteredResults.reduce((sum, r) => sum + calculatePercentage(r), 0) / filteredResults.length)
-                    : 0}%
-                </h3>
-                <p>Average Score</p>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">✅</div>
-              <div className="summary-info">
-                <h3>{filteredResults.filter(r => calculatePercentage(r) >= 60).length}</h3>
-                <p>Passed</p>
-              </div>
-            </div>
-            <div className="summary-card">
-              <div className="summary-icon">📈</div>
-              <div className="summary-info">
-                <h3>
-                  {filteredResults.length > 0 
-                    ? Math.max(...filteredResults.map(r => calculatePercentage(r)))
-                    : 0}%
-                </h3>
-                <p>Best Score</p>
-              </div>
-            </div>
-          </div>
+                      <Route 
+                        path="/admin/dashboard" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/admin/users" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminUsers />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/admin/exams" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminExams />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/admin/analytics" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/admin/settings" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <Settings />
+                          </ProtectedRoute>
+                        } 
+                      />
 
-          {/* Results Grid */}
-          <div className="results-grid">
-            {filteredResults.map((submission) => {
-              const percentage = calculatePercentage(submission);
-              const grade = getGrade(percentage);
-              const scoreText = getScoreText(submission);
-              
-              return (
-                <div key={submission._id} className="result-card">
-                  <div className="result-card-header">
-                    <h3>{submission.exam?.title || 'Unknown Exam'}</h3>
-                    <span className="subject-tag">{submission.exam?.subject || 'No Subject'}</span>
-                  </div>
-                  
-                  <div className="result-card-body">
-                    <div className="score-section">
-                      <div className={`grade-circle ${getGradeColor(percentage)}`}>
-                        <span className="percentage">{percentage}%</span>
-                        <span className="grade">{grade}</span>
-                      </div>
-                      <div className="score-details">
-                        <p className="score-text">{scoreText}</p>
-                        <p className="date-text">
-                          📅 {formatDate(submission.submittedAt)}
-                        </p>
-                        <p className="time-text">
-                          ⏱️ {submission.timeTaken || 0} minutes
-                        </p>
-                        <p className="attempt-text">
-                          🔄 Attempt #{submission.attemptNumber || 1}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="result-card-footer">
-                    <Link 
-                      to={`/exam-result/${submission._id}`} 
-                      className="btn btn-primary"
-                    >
-                      📊 View Details
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
+                      {/* Teacher Routes */}
+                      <Route 
+                        path="/teacher/dashboard" 
+                        element={
+                          <ProtectedRoute allowedRoles={['teacher']}>
+                            <TeacherDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/create-exam" 
+                        element={
+                          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                            <CreateExam />
+                          </ProtectedRoute>
+                        } 
+                      />
+
+                      {/* Student Routes */}
+                      <Route 
+                        path="/student/dashboard" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student']}>
+                            <StudentDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+
+                      {/* Parent Routes */}
+                      <Route 
+                        path="/parent/dashboard" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ParentDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/child/:childId/progress" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ChildProgress />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/children" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ParentChildren />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/reports" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ParentReports />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/child/:childId/progress" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ChildProgress />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/children" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ParentDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/reports" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <ParentDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/parent/notifications" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <Notifications />
+                          </ProtectedRoute>
+                        } 
+                      />
+
+                      {/* Legacy redirect routes for parent */}
+                      <Route 
+                        path="/children" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <Navigate to="/parent/dashboard" replace />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/progress" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <Navigate to="/parent/dashboard" replace />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/reports" 
+                        element={
+                          <ProtectedRoute allowedRoles={['parent']}>
+                            <Navigate to="/parent/reports" replace />
+                          </ProtectedRoute>
+                        } 
+                      />
+                        
+                      {/* Exam Routes - Accessible to multiple roles */}
+                      <Route 
+                        path="/exam-list" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student', 'teacher', 'parent']}>
+                            <ExamList />
+                          </ProtectedRoute>
+                        } 
+                      />
+
+{/* Missing Exam Management Routes */}
+<Route 
+  path="/exam/edit/:examId" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <EditExam />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+  path="/exam/:examId/edit" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <EditExam />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+  path="/exam/submissions/:examId" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <ExamSubmissions />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+  path="/exam/:examId/submissions" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <ExamSubmissions />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+    path="/exam/:examId/questions" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <ExamQuestions />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+  path="/exam/results/:examId" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+      <ExamResults />
+    </ProtectedRoute>
+  } 
+/>
+<Route 
+  path="/exam/:examId/result" 
+  element={
+    <ProtectedRoute allowedRoles={['student']}>
+      <ExamResult />
+    </ProtectedRoute>
+  } 
+/>
+
+
+
+                      <Route 
+                        path="/exam/:examId" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student']}>
+                            <ExamTake />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/exam-result/:submissionId" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student', 'teacher', 'parent']}>
+                            <ExamResult />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+  path="/reports/student/:studentId/progress" 
+  element={
+    <ProtectedRoute allowedRoles={['teacher', 'admin', 'parent']}>
+      <StudentProgress />
+    </ProtectedRoute>
+  } 
+/>
+                      <Route 
+                        path="/results-list" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student', 'teacher', 'parent']}>
+                            <ResultsList />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/schedule" 
+                        element={
+                          <ProtectedRoute allowedRoles={['student', 'teacher', 'parent']}>
+                            <Schedule />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/students" 
+                        element={
+                          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                            <Students />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/admin/exams/:examId" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                            <ExamView />
+                          </ProtectedRoute>
+                        } 
+                      />
+
+                      {/* Alternative route paths for convenience */}
+                      <Route 
+                        path="/exams" 
+                        element={
+                          <ProtectedRoute>
+                            <ExamList />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/results" 
+                        element={
+                          <ProtectedRoute>
+                            <ResultsList />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      
+                      {/* Catch all route - must be last */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </main>
+                
+                <Footer />
+                
+                <ToastContainer
+                  position="top-right"
+                  autoClose={5000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="light"
+                />
+              </div>
+            </Router>
+          </NotificationProvider>
+        </ExamProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
-};
+}
 
-export default ResultsList;
+export default App;
